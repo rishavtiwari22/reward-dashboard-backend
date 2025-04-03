@@ -11,18 +11,34 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS
 
-const keyFilePath = "./credentials.json"; // ✅ Ensure this path is correct
+// const keyFilePath = "./credentials.json"; // ✅ Ensure this path is correct
 
-// ✅ Check if the credentials file exists before authentication
-if (!fs.existsSync(keyFilePath)) {
-  console.error("❌ Google credentials file not found.");
+// // ✅ Check if the credentials file exists before authentication
+// if (!fs.existsSync(keyFilePath)) {
+//   console.error("❌ Google credentials file not found.");
+//   process.exit(1);
+// }
+
+// const auth = new google.auth.GoogleAuth({
+//   keyFile: keyFilePath,
+//   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+// });
+
+
+const credentialsJSON = process.env.GOOGLE_CREDENTIALS;
+
+if (!credentialsJSON) {
+  console.error("❌ Google credentials are missing.");
   process.exit(1);
 }
 
+const credentials = JSON.parse(Buffer.from(credentialsJSON, "base64").toString());
+
 const auth = new google.auth.GoogleAuth({
-  keyFile: keyFilePath,
+  credentials,
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
+
 
 // ✅ Fetch & Store Data from Google Sheet to MongoDB
 app.post("/fetch-sheet-data", async (req, res) => {
