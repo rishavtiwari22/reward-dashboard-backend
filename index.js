@@ -11,20 +11,6 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS
 
-// const keyFilePath = "./credentials.json"; // ✅ Ensure this path is correct
-
-// // ✅ Check if the credentials file exists before authentication
-// if (!fs.existsSync(keyFilePath)) {
-//   console.error("❌ Google credentials file not found.");
-//   process.exit(1);
-// }
-
-// const auth = new google.auth.GoogleAuth({
-//   keyFile: keyFilePath,
-//   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-// });
-
-
 const credentialsJSON = process.env.GOOGLE_CREDENTIALS;
 
 if (!credentialsJSON) {
@@ -70,7 +56,7 @@ app.post("/fetch-sheet-data", async (req, res) => {
 
     const dataRows = rows.slice(1);
 
-    const students = dataRows 
+    const students = dataRows
       .map((row) => ({
         studentName: row[0]?.trim() || null,
         houseName: row[1]?.trim() || null,
@@ -126,3 +112,8 @@ mongoose.connect(process.env.MONGO_URI)
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
