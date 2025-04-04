@@ -11,20 +11,18 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS
 
-const credentialsJSON = process.env.GOOGLE_CREDENTIALS;
+const keyFilePath = "./credentials.json"; // ✅ Ensure this path is correct
 
-if (!credentialsJSON) {
-  console.error("❌ Google credentials are missing.");
+// ✅ Check if the credentials file exists before authentication
+if (!fs.existsSync(keyFilePath)) {
+  console.error("❌ Google credentials file not found.");
   process.exit(1);
 }
 
-const credentials = JSON.parse(Buffer.from(credentialsJSON, "base64").toString());
-
 const auth = new google.auth.GoogleAuth({
-  credentials,
+  keyFile: keyFilePath,
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
-
 
 // ✅ Fetch & Store Data from Google Sheet to MongoDB
 app.post("/fetch-sheet-data", async (req, res) => {
@@ -106,14 +104,14 @@ app.get("/api/students", async (req, res) => {
 
 // ✅ Connect to MongoDB & Start Server
 const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("✅ MongoDB Connected");
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-
+  
 app.get("/", (req, res) => {
   res.send("Api is working!");
 });
