@@ -11,17 +11,23 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS
 
-// ✅ Decode GOOGLE_CREDENTIALS from .env and write to a temporary file
-const keyFilePath = "./credentials.json";
-if (!process.env.GOOGLE_CREDENTIALS) {
-  console.error("❌ Missing GOOGLE_CREDENTIALS environment variable.");
-  process.exit(1);
-}
-fs.writeFileSync(keyFilePath, Buffer.from(process.env.GOOGLE_CREDENTIALS, "base64"));
+// ✅ Load Google credentials from environment variables
+const googleCredentials = {
+  type: process.env.GOOGLE_TYPE,
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  auth_uri: process.env.GOOGLE_AUTH_URI,
+  token_uri: process.env.GOOGLE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_CERT_URL,
+  client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL,
+};
 
-// ✅ Initialize GoogleAuth with the temporary credentials file
+// ✅ Initialize GoogleAuth with credentials from environment variables
 const auth = new google.auth.GoogleAuth({
-  keyFile: keyFilePath,
+  credentials: googleCredentials,
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
 
