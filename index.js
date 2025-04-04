@@ -11,14 +11,15 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS
 
-const keyFilePath = "./credentials.json"; // ✅ Ensure this path is correct
-
-// ✅ Check if the credentials file exists before authentication
-if (!fs.existsSync(keyFilePath)) {
-  console.error("❌ Google credentials file not found.");
+// ✅ Decode GOOGLE_CREDENTIALS from .env and write to a temporary file
+const keyFilePath = "./credentials.json";
+if (!process.env.GOOGLE_CREDENTIALS) {
+  console.error("❌ Missing GOOGLE_CREDENTIALS environment variable.");
   process.exit(1);
 }
+fs.writeFileSync(keyFilePath, Buffer.from(process.env.GOOGLE_CREDENTIALS, "base64"));
 
+// ✅ Initialize GoogleAuth with the temporary credentials file
 const auth = new google.auth.GoogleAuth({
   keyFile: keyFilePath,
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
@@ -104,7 +105,7 @@ app.get("/api/students", async (req, res) => {
 
 // ✅ Connect to MongoDB & Start Server
 const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB Connected");
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
